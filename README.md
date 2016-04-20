@@ -17,7 +17,7 @@ HW and Tool Chain Support
  - The code is tested for the Arduino tool chain only (however, it should work with the native tool chain, too). Tested versions:
 	 - Arduino IDE 1.6.5
 	 - ESP8266 Arduino Core 2.1.0
-	 -
+
 Brzo i2c was tested with several i2c devices. If you find one which is not working, please open an issue.
 
 How to use the Brzo I2C Library

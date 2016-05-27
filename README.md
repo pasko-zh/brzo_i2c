@@ -75,6 +75,7 @@ Example: Start a transaction to an i2c slave at 0x20 with 1 MHz SCL speed.
 > **Note:** 
 > - You can only call `brzo_i2c_write` inside a transaction!
 > - Of course, there is error checking inside the write command. However, errors are only reported at the end of a transaction. 
+> - In the current version 1.0, `no_of_bytes` will always be written from the beginning of the `data` array, i.e. from `data[0]` to the i2c slave.
 
 Input
  - A pointer to an array of bytes
@@ -85,7 +86,7 @@ Returns
 - None
 
 Example
-- From (the previously defined)  `uint8_t buffer[4]` write 2 bytes and finish the command with a STOP,  i.e. no repeated start.
+- From (the previously defined)  `uint8_t buffer[4]` write 2 bytes (`buffer[0]`, `buffer[1]`) and finish the command with a STOP,  i.e. no repeated start.
 `brzo_i2c_write(buffer, 2, false);`
 
 **I2C Read**
@@ -95,6 +96,8 @@ Example
 > **Note:** 
 > - You can only call `brzo_i2c_read` inside a transaction!
 > - Of course, there is error checking inside the read command. However, errors are only reported at the end of a transaction.
+> - In the current version 1.0, the `no_of_bytes` read from i2c will always be stored at beginning of the `data` array, i.e. starting from `data[0]`. 
+
 
 Input
  - A pointer to an array of bytes
@@ -105,7 +108,7 @@ Returns
 - None
 
 Example
-- Into (the previously defined)  `uint8_t buffer[4]` store 3 bytes and finish the read with a repeated start, i.e. do not send a STOP.
+- Into (the previously defined) `uint8_t buffer[4]` store 3 bytes (`buffer[0]`, `buffer[1]`, `buffer[2]`) and finish the read with a repeated start, i.e. do not send a STOP.
 `brzo_i2c_read(buffer, 3, true);`
 
 **End a Transaction**

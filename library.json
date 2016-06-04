@@ -1,0 +1,20 @@
+{
+  "name": "Brzo I2C",
+  "version": "1.0.0",
+  "keywords": "esp8266, I2C",
+  "description": "Brzo I2C is a fast I2C Implementation written in Assembly for the esp8266",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/pasko-zh/brzo_i2c.git"
+  },
+  "authors":
+  [
+    {
+        "name": "pasko",
+        "email": "your@email.com",
+    }
+  ],
+  "frameworks": "arduino",
+  "platforms": "espressif"
+}

@@ -114,6 +114,10 @@ Example
 
 `uint8_t brzo_i2c_end_transaction()`
 
+> **Note:** 
+> - The last i2c command before calling `brzo_i2c_end_transaction()` must not contain a repeated start, therefore use `brzo_i2c_read/write(.., .., false)` to send a STOP sequence instead of another repeated START.
+> - Refer to the [i2c specification](http://www.i2c-bus.org/repeated-start-condition) about repeated starts and how to "end" them
+
 
 Input
  - None

@@ -11,8 +11,8 @@
   "authors":
   [
     {
-        "name": "pasko",
-        "email": "your@email.com",
+        "name": "Pascal Kurtansky",
+        "email": "pascal@kurtansky.ch",
     }
   ],
   "frameworks": "arduino",

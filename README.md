@@ -75,10 +75,10 @@ Example: Start a transaction to an i2c slave at 0x20 with 1 MHz SCL speed.
 > **Note:** 
 > - You can only call `brzo_i2c_write` inside a transaction!
 > - Of course, there is error checking inside the write command. However, errors are only reported at the end of a transaction. 
-> - In the current version 1.0, `no_of_bytes` will always be written from the beginning of the `data` array, i.e. from `data[0]` to the i2c slave.
+
 
 Input
- - A pointer to an array of bytes
+ - A pointer to an array of bytes: Either use the base address, e.g., `brzo_i2c_write(buffer, 2, ..)` or use the address of a specific array element, e.g. `brzo_i2c_write(&buffer[4], 2, ..);`. The former writes `buffer[0]` and `buffer[1]`, the latter  `buffer[4]` and `buffer[5]`
  - The number of bytes to be written
  - Repeated start if needed
  
@@ -96,11 +96,10 @@ Example
 > **Note:** 
 > - You can only call `brzo_i2c_read` inside a transaction!
 > - Of course, there is error checking inside the read command. However, errors are only reported at the end of a transaction.
-> - In the current version 1.0, the `no_of_bytes` read from i2c will always be stored at beginning of the `data` array, i.e. starting from `data[0]`. 
 
 
 Input
- - A pointer to an array of bytes
+ - A pointer to an array of bytes: Either use the base address, e.g., `brzo_i2c_read(buffer, 2, ..)` or use the address of a specific array element, e.g. `brzo_i2c_read(&buffer[4], 2, ..);`. The former receives two bytes and saves them to `buffer[0]` and `buffer[1]`, the latter to `buffer[4]` and `buffer[5]`
  - The number of bytes to be read
  - Repeated start if needed
  

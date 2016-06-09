@@ -130,6 +130,7 @@ Returns
 
 Example of I2C Transactions
 ----------------
+Examples of sketches are located in [/examples](https://github.com/pasko-zh/brzo_i2c/tree/master/examples) folder.
 
 ```c
 #include "brzo_i2c.h"

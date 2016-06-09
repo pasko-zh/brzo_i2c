@@ -15,8 +15,8 @@ HW and Tool Chain Support
 
  - Brzo i2c supports **only** esp8266 modules because it is implented in Xtensa assembly language.
  - The code is tested for the Arduino tool chain only (however, it should work with the native tool chain, too). Tested versions:
-	 - Arduino IDE 1.6.5
-	 - ESP8266 Arduino Core 2.1.0
+	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.2.0
+	 - Arduino IDE 1.6.5, ESP8266 Arduino Core 2.1.0
 
 Brzo i2c was tested with several i2c devices. If you find one which is not working, please open an issue.
 

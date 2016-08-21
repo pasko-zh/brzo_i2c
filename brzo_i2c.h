@@ -29,11 +29,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec);
-  void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz);
-  void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, boolean repeated_start);
-  void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, boolean repeated_start);
-  uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction();
+	void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec);
+	void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz);
+	void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, boolean repeated_start);
+	void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, boolean repeated_start);
+	uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction();
 #ifdef __cplusplus
 }
 #endif

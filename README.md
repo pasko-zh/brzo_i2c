@@ -22,21 +22,23 @@ Brzo i2c was tested with several i2c devices. If you find one which is not worki
 
 How to use the Brzo I2C Library
 ===============================
-Since it supports the esp8266 only, you should put the library into the corresponding esp8266 arduino core directory, for instance under Windows: `...\packages\esp8266\hardware\esp8266\2.1.0\libraries` 
+ - Use the Library Manager: If you are developing with [PlatformIO](http://platformio.org/) then simply use the library manager to install [brzo_i2c](http://platformio.org/lib/show/335/Brzo%20I2C)
 
-Include brzo_i2c in your sketch as any other library with `#include "brzo_i2c.h"`. 
+ - Manual installation: You should put the library files into the corresponding esp8266 arduino core directory, for instance under Windows this would typically be something like this: `...\packages\esp8266\hardware\esp8266\2.1.0\libraries` 
+
+And then just include brzo_i2c in your sketch as any other library with `#include "brzo_i2c.h"`. 
 
 I2C Setup
 ----------------
 
-To setup your i2c bus you need to call at least once `brzo_i2c_setup`.  
+To setup the i2c bus you need to call at least once `brzo_i2c_setup`.  
 
 `brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec)`.  
 Input
 
  - The number of your SDA Pin
  - The number of your SCL Pin
- - The timeout for a slave's clock stretch in micro seconds
+ - The timeout for an i2c slave clock stretch in micro seconds. **Be careful when using i2c devices with a very long clock stretching, please read the [wiki](https://github.com/pasko-zh/brzo_i2c/wiki#i2c-setup-and-clock-stretching).**
 
 Returns
 

@@ -48,7 +48,7 @@ uint16_t i2c_SCL_frequency = 0;
 uint8_t i2c_error = 0;
 
 
-void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, bool repeated_start)
+void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool repeated_start)
 {
 	// Pointer to Data Buffer, Number of Bytes to Send from Data Buffer
 	// Returns 0 or Error encoded as follows
@@ -350,7 +350,7 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, bool rep
 	return;
 }
 
-void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, bool repeated_start)
+void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool repeated_start)
 {
 	// Pointer to Data Buffer, Number of Bytes to Read from Data Buffer
 	// Set i2c_error as follows

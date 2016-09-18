@@ -21,6 +21,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+#ifndef ARDUINO
+#include <eagle_soc.h>
+#include <ets_sys.h>
+#include <os_type.h>
+#include <osapi.h>
+#include <gpio.h>
+#include <user_interface.h>
+
+extern void ets_isr_mask(unsigned intr); // missing definition
+extern void ets_isr_unmask(unsigned intr); // missing definition
+
+#ifndef ICACHE_RAM_ATTR
+#define ICACHE_RAM_ATTR
+#endif
+#endif
+
 #include "brzo_i2c.h"
 
 // Global variables
@@ -32,7 +48,8 @@ uint16_t i2c_SCL_frequency = 0;
 uint8_t i2c_error = 0;
 
 
-void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, boolean repeated_start) {
+void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, bool repeated_start)
+{
 	// Pointer to Data Buffer, Number of Bytes to Send from Data Buffer
 	// Returns 0 or Error encoded as follows
 	// Bit 0 (1) : Bus not free
@@ -333,7 +350,8 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, boolean 
 	return;
 }
 
-void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, boolean repeated_start) {
+void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, bool repeated_start)
+{
 	// Pointer to Data Buffer, Number of Bytes to Read from Data Buffer
 	// Set i2c_error as follows
 	// Bit 0 (1) : Bus not free
@@ -708,13 +726,14 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, boolean r
 	return;
 }
 
-void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz) {
+void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz)
+{
 	// 7 Bit Slave Address; SCL Frequency in Steps of 100 KHz, range: 100 -- 1000 KHz
 
 	i2c_slave_address = slave_address;
 	if (i2c_SCL_frequency != SCL_frequency_KHz) {
 		uint16_t fr_sel = round(SCL_frequency_KHz / 100.0);
-		if (F_CPU == 160000000) {
+		if (system_get_cpu_freq() == 160) {
 			if (fr_sel <= 1) iteration_scl_halfcycle = 156;
 			else if (fr_sel == 2) iteration_scl_halfcycle = 79;
 			else if (fr_sel == 3) iteration_scl_halfcycle = 51;
@@ -740,7 +759,8 @@ void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t 
 	}
 }
 
-uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction() {
+uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction()
+{
 	// returns 0 if transaction completed successfully or error code encoded as follows
 	// Bit 0 (1) : Bus not free
 	// Bit 1 (2) : Not ACK ("NACK") by slave during write: Either the slave did not respond to the given slave address; 
@@ -756,14 +776,19 @@ uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction() {
 	return dummy;
 }
 
-void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec) {
+#ifdef ARDUINO
+void ICACHE_FLASH_ATTR brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec)
+#else
+void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
+#endif
+{
 	// SDA pin, SCL pin
 	// maximum time (usec) a slave is allowed to stretch the clock, min. 100 usec
 
 	// Assembler Variables
 	uint32_t a_set, a_temp1;
 
-	if (F_CPU == 160000000) {
+	if (system_get_cpu_freq() == 160) {
 		iteration_remove_spike = 15;
 		if (clock_stretch_time_out_usec < 100) iteration_scl_clock_stretch = 730;
 		else iteration_scl_clock_stretch = 730 * clock_stretch_time_out_usec / 100;
@@ -775,10 +800,27 @@ void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_us
 		else iteration_scl_clock_stretch = 470 * clock_stretch_time_out_usec / 100;
 	}
 
+#ifdef ARDUINO
 	pinMode(sda, OUTPUT_OPEN_DRAIN);
 	pinMode(scl, OUTPUT_OPEN_DRAIN);
 	sda_bitmask = (uint16_t)(1 << sda);
 	scl_bitmask = (uint16_t)(1 << scl);
+#else
+	ETS_GPIO_INTR_DISABLE();
+
+	PIN_FUNC_SELECT(BRZO_I2C_SDA_MUX, BRZO_I2C_SDA_FUNC);
+	PIN_FUNC_SELECT(BRZO_I2C_SCL_MUX, BRZO_I2C_SCL_FUNC);
+
+	GPIO_REG_WRITE(GPIO_PIN_ADDR(GPIO_ID_PIN(BRZO_I2C_SDA_GPIO)), GPIO_REG_READ(GPIO_PIN_ADDR(GPIO_ID_PIN(BRZO_I2C_SDA_GPIO))) | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE)); //open drain;
+	GPIO_REG_WRITE(GPIO_ENABLE_ADDRESS, GPIO_REG_READ(GPIO_ENABLE_ADDRESS) | (1 << BRZO_I2C_SDA_GPIO));
+	GPIO_REG_WRITE(GPIO_PIN_ADDR(GPIO_ID_PIN(BRZO_I2C_SCL_GPIO)), GPIO_REG_READ(GPIO_PIN_ADDR(GPIO_ID_PIN(BRZO_I2C_SCL_GPIO))) | GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_ENABLE)); //open drain;
+	GPIO_REG_WRITE(GPIO_ENABLE_ADDRESS, GPIO_REG_READ(GPIO_ENABLE_ADDRESS) | (1 << BRZO_I2C_SCL_GPIO));
+
+	ETS_GPIO_INTR_ENABLE();
+
+	sda_bitmask = (uint16_t)(1 << BRZO_I2C_SDA_GPIO);
+	scl_bitmask = (uint16_t)(1 << BRZO_I2C_SCL_GPIO);
+#endif
 
 	// After setting the pins to open drain, their initial value is LOW
 	//   therefore, we have to set SDA and SCL to high and wait a little bit
@@ -799,6 +841,7 @@ void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_us
 	);
 }
 
-void brzo_i2c_reset_bus() {
+void ICACHE_FLASH_ATTR brzo_i2c_reset_bus()
+{
 	// Not yet implemented
 }

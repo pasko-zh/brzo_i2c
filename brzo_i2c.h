@@ -24,17 +24,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _BRZO_I2C_h
 #define _BRZO_I2C_h
 
+#ifdef ARDUINO
 #include "Arduino.h"
+#else
+#include <c_types.h>
+
+// SDA on GPIO12, SCL on GPIO13
+#define BRZO_I2C_SDA_MUX PERIPHS_IO_MUX_MTDI_U
+#define BRZO_I2C_SCL_MUX PERIPHS_IO_MUX_MTCK_U
+#define BRZO_I2C_SDA_GPIO 12
+#define BRZO_I2C_SCL_GPIO 13
+#define BRZO_I2C_SDA_FUNC FUNC_GPIO12
+#define BRZO_I2C_SCL_FUNC FUNC_GPIO13
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-	void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec);
-	void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz);
-	void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, boolean repeated_start);
-	void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, boolean repeated_start);
-	uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction();
+
+#ifdef ARDUINO
+void brzo_i2c_setup(uint8_t sda, uint8_t scl, uint32_t clock_stretch_time_out_usec);
+#else
+void brzo_i2c_setup(uint32_t clock_stretch_time_out_usec);
+#endif
+
+void brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz);
+void brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, bool repeated_start);
+void brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, bool repeated_start);
+uint8_t brzo_i2c_end_transaction();
+
 #ifdef __cplusplus
 }
 #endif
+
 #endif

@@ -726,7 +726,7 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint8_t nr_of_bytes, bool repe
 	return;
 }
 
-void ICACHE_FLASH_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz)
+void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz)
 {
 	// 7 Bit Slave Address; SCL Frequency in Steps of 100 KHz, range: 100 -- 1000 KHz
 
@@ -759,7 +759,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_
 	}
 }
 
-uint8_t ICACHE_FLASH_ATTR brzo_i2c_end_transaction()
+uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction()
 {
 	// returns 0 if transaction completed successfully or error code encoded as follows
 	// Bit 0 (1) : Bus not free

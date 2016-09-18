@@ -14,7 +14,8 @@ HW and Tool Chain Support
 -------
 
  - Brzo i2c supports **only** esp8266 modules because it is implented in Xtensa assembly language.
- - The code is tested for the Arduino tool chain and thanks to @valkuc works for the native tool chain, too.
+ - The code is tested for the Arduino tool chain 
+ - And thanks to **valkuc** works for the native tool chain, too! Make sure to use the correct [compiler flags](https://github.com/pasko-zh/brzo_i2c/issues/9#issuecomment-247020598).
  - Tested Arduino versions:
 	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.2.0
 	 - Arduino IDE 1.6.5, ESP8266 Arduino Core 2.1.0
@@ -25,9 +26,11 @@ Brzo i2c was tested with several i2c devices. If you find one which is not worki
 
 How to use the Brzo I2C Library
 ===============================
- - Use the Library Manager: If you are developing with [PlatformIO](http://platformio.org/) then simply use the library manager to install [brzo_i2c](http://platformio.org/lib/show/335/Brzo%20I2C)
+ - Use the Library Manager: 
+	 - If you are using the ArduinoIDE, you can install via library manager
+	 - If you are developing with [PlatformIO](http://platformio.org/) then simply use the library manager to install [brzo_i2c](http://platformio.org/lib/show/335/Brzo%20I2C)
 
- - Manual installation: You should put the library files into the corresponding esp8266 arduino core directory, for instance under Windows this would typically be something like this: `...\packages\esp8266\hardware\esp8266\2.1.0\libraries` 
+ - Pull it from github
 
 And then just include brzo_i2c in your sketch as any other library with `#include "brzo_i2c.h"`. 
 

@@ -732,7 +732,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_
 
 	i2c_slave_address = slave_address;
 	if (i2c_SCL_frequency != SCL_frequency_KHz) {
-		uint16_t fr_sel = SCL_frequency_KHz / 100;
+		uint16_t fr_sel = round(SCL_frequency_KHz / 100.0);
 		if (system_get_cpu_freq() == 160) {
 			if (fr_sel <= 1) iteration_scl_halfcycle = 156;
 			else if (fr_sel == 2) iteration_scl_halfcycle = 79;

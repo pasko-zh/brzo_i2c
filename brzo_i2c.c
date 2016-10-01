@@ -43,6 +43,7 @@ extern void ets_isr_unmask(unsigned intr); // missing definition
 uint16_t sda_bitmask, scl_bitmask, iteration_scl_halfcycle;
 uint16_t iteration_remove_spike;
 uint32_t iteration_scl_clock_stretch;
+uint16_t ACK_polling_loop_usec;
 uint8_t i2c_slave_address;
 uint16_t i2c_SCL_frequency = 0;
 uint8_t i2c_error = 0;
@@ -726,13 +727,241 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	return;
 }
 
+void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
+	// Timeout for ACK polling in usec
+	// Returns 0 or Error encoded as follows
+	// Bit 0 (1) : Bus not free
+	// Bit 1 (2) : If the ACK polling time out was exceeded, we will have a NACK, too. 
+	// Bit 2 (4) : -- 
+	// Bit 3 (8) : --
+	// Bit 4 (16): --
+	// Bit 5 (32): ACK Polling time out exceeded
+
+	// Assembler Variables
+	uint32_t a_set, a_in_value, a_temp1, a_bit_index;
+	uint16_t iteration_ACK_polling_timeout;
+	uint8_t byte_to_send = i2c_slave_address << 1;
+
+	if (ACK_polling_time_out_usec == 0) {
+		iteration_ACK_polling_timeout = 1;
+	}
+	else {
+		iteration_ACK_polling_timeout = ACK_polling_time_out_usec / ACK_polling_loop_usec;
+	}
+
+	asm volatile (
+		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
+		//   the current level is saved in %[r_temp1] but we will not use that value again, 
+		//   instead we will just enable all interrupt levels at the end of this routine
+		"RSIL   %[r_temp1], 15;"
+		"MOVI   %[r_set], 0x60000304;"
+
+		// Check if bus is free and send START
+		"OR     %[r_temp1], %[r_sda_bitmask], %[r_scl_bitmask];"
+		"L16UI  %[r_in_value], %[r_set], 20;" // offset is 20d = 14h = > in: 0x60000318
+		"MEMW;"
+		"MOVI.N %[r_error], 1;"
+		// If either SDA or SCL is low, then bus is not free and thus jump to l_exit_a
+		"BNALL  %[r_in_value], %[r_temp1], l_exit_a;"
+		// Bus is free, so we can send START
+		"MOVI.N %[r_error], 0;"
+
+		// The ACK polling loop starts here
+		"l_ACK_loop:"
+		// Decrease the number of iterations for the ACK polling loop by 1
+		"ADDI   %[r_iteration_ACK_polling_timeout], %[r_iteration_ACK_polling_timeout], -1;"
+		
+		"MOV.N  %[r_temp1], %[r_iteration_scl_halfcycle];"
+		// Set SCL = 1
+		"S16I   %[r_scl_bitmask], %[r_set], 0;"
+		"MEMW;"
+		// Set SDA = 0
+		// Delay for tHD;STA  >= 4.0 usec for standard mode, 0.6 usec for fast or 0.26 usec fast mode plus
+		//  => a delay of one half cycle is enough to meet those timings
+		"S16I   %[r_sda_bitmask], %[r_set], 4;"  // clear: 0x60000308
+		"l_w01_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w01_a;"
+		// Post Condition: SDA = 0, SCL = 1
+
+		// select the MSB of byte_to_send
+		"MOVI   %[r_bit_index], 128;"
+		// The loop for sending 1...8 bits
+		"l_send_bit_a:"
+		"MOV.N  %[r_temp1], %[r_iteration_scl_halfcycle];"
+		// check if the bit of byte_to_send at bit_index is 0 or 1
+		"BALL   %[r_byte_to_send], %[r_bit_index], l_sda1_scl0_a;"
+		// SDA = 0, SCL = 0
+		"S16I   %[r_scl_bitmask], %[r_set], 4;" // clear: 0x60000308
+		"MEMW;"
+		"S16I   %[r_sda_bitmask], %[r_set], 4;" // clear: 0x60000308
+		"l_w02_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w02_a;"
+		"j l_sdax_scl1_a;"
+
+		"l_sda1_scl0_a:"
+		// SDA = 1, SCL = 0
+		"S16I   %[r_scl_bitmask], %[r_set], 4;" // clear: 0x60000308
+		"MEMW;"
+		"S16I   %[r_sda_bitmask], %[r_set], 0;"
+		"l_w03_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w03_a;"
+
+		"l_sdax_scl1_a:"
+		// SDA = leave unchanged and set SCL = 1
+		"MOV.N  %[r_temp1], %[r_iteration_scl_halfcycle];"
+		// Let SCL raise
+		"S16I   %[r_scl_bitmask], %[r_set], 0;"
+		"MEMW;"
+		"l_w04_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w04_a;"
+		// Postcondition: SCL = 1 for a half cycle
+		
+		// Are there bits left that we need to send?
+		"SRLI   %[r_bit_index], %[r_bit_index], 1;"
+		// When the LSB of the byte_to_send was sent, i.e. bit index was 1 before SRLI, it will now be zero
+		// As long as the LSB was not sent keep on sending bits, i.e. jump
+		"BNEZ   %[r_bit_index], l_send_bit_a;"
+		// we have sent 8 Bits
+
+		// check for ACK by slave
+		// Precondition
+		// SDA = LSB (i.e. SDA = 0, since we have an i2c write), SCL = 1
+		// SCL = 0
+		// Spike reducing waits here
+		"S16I   %[r_scl_bitmask], %[r_set], 4;"  // clear : 0x60000308
+		"MOV.N  %[r_temp1], %[r_iteration_minimize_spike];"
+		"l_w05_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w05_a;"
+		// Reduce number of iterations by the ones we've already used
+		"SUB    %[r_temp1], %[r_iteration_scl_halfcycle], %[r_iteration_minimize_spike];"
+		// Now we let SDA raise. 
+		// In case of an ACK the i2c slave is pulling SDA down
+		// In case of an NACK, SDA raises
+		"S16I   %[r_sda_bitmask], %[r_set], 0;"
+		"MEMW;"
+		"l_w06_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BGEZ   %[r_temp1], l_w06_a;"
+
+		// Delay is little bit shorter, i.e. half_cycle - delta
+		// Because we will have a L16UI after in this half cycle
+		"ADDI   %[r_temp1], %[r_iteration_scl_halfcycle], -5;"
+		// Set SCL = 1, i.e. start of the second half cycle of the 9th SCL cycle
+		"S16I   %[r_scl_bitmask], %[r_set], 0;"
+		"MEMW;"
+		// Delay for the second half cycle of the 9th SCL cycle
+		"l_w07_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BGEZ   %[r_temp1], l_w07_a;"
+		// Sample SDA at the end of the 9th clock cycle, because
+		//      in the case of an NACK we want to leave enough time that SDA can raise 
+		// If sda_value AND sda_bitmask == 0 => ACK else we have an NACK
+		"L16UI  %[r_in_value], %[r_set], 20;" // offset is 20d = 14h = > in: 0x60000318
+		// If there was an ACK then jump
+		//  Since we had an ACK, Postcondition: SDA is still pulled low by the slave (SDA = 0), SCL = 1
+		"BNALL  %[r_in_value], %[r_sda_bitmask], l_slave_ack_a;"
+		// NACK by slave
+		"MOVI.N %[r_error], 2;"
+		// If we have not yet gone through all iterations, jump to the beginning of the ACK loop
+		//   Since we had a NACK, Postcondition: SDA = 1 and SCL = 1
+		"BNEZ   %[r_iteration_ACK_polling_timeout], l_ACK_loop;"
+		// else we have a timeout and a NACK
+		// Timeout error and NACK error (Bit 1, Bit 5; 34d)
+		"MOVI.N %[r_error], 34;"
+		// Since we had a NACK, Postcondition: SDA = 1 and SCL = 1
+		// We will send a STOP after the timeout and the NACK, just to be on the safe side
+		"j l_stop_after_NACK_a;" 
+		
+		"l_slave_ack_a:"
+		// Precondition: SDA = 0 (still pulled low by the slave) and SCL = 1
+		// 9th Clock Cycle is finished
+
+		// The slave will pull SDA low as long as SCL = 1
+		// First, we have to set SDA = 0 by the master. This is to prevent a spike if the slave shall release
+		//   SDA a little bit too early
+		// clear : 0x60000308
+		"S16I   %[r_sda_bitmask], %[r_set], 4;"
+		//	SDA is still pulled low by the slave (and the master), so we have to signal the slave to release it.
+		//  We will do this by letting SCL go low. 
+		"MOV.N  %[r_temp1], %[r_iteration_scl_halfcycle];"
+		// We are at the beginning of the 10th cycle
+		// Set SCL = 0
+		// During the first half cycle the slave should release SDA...
+		"S16I   %[r_scl_bitmask], %[r_set], 4;" // clear : 0x60000308
+		"MEMW;"
+		"l_w08_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w08_a;"
+		// Make sure that the precondition for the next command (i.e. the start) will be met
+		// Currently, SCL = 0 and SDA is still set low by the master
+		// We thus set both SCL = 1 _and SDA = 1 
+		// SDA  = 1
+		"S16I   %[r_sda_bitmask], %[r_set], 0;"
+		"MEMW;"
+		// SCL = 1;
+		"S16I   %[r_scl_bitmask], %[r_set], 0;"
+		// Postcondition: SCL = 1 and SDA = 1, now the next i2c command send start
+		"j l_exit_a;"
+
+		"l_stop_after_NACK_a:"
+		// Send stop after NACK and timeout
+		// Precondition: SDA = 1, SCL = 1
+		"MOV.N  %[r_temp1], %[r_iteration_scl_halfcycle];"
+		// SDA = 0
+		// SCL = 1 : In "normal" cycles we woud set SCL to 0
+		"S16I   %[r_sda_bitmask], %[r_set], 4;"  // clear: 0x60000308
+		"S16I   %[r_scl_bitmask], %[r_set], 0;"
+		// Delay for the first half cycle of 10th cycle
+		"MEMW;"
+		"l_w11_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w11_a;"
+		// Postcondition: SDA = 0 and SCL = 1
+
+		// Now we set SDA = 1 and leave SCL = 1 : This ist the STOP condition, 
+		//   i.e. the "A LOW to HIGH transition on the SDA line while SCL is HIGH"
+		"MOV.N  %[r_temp1], %[r_iteration_scl_halfcycle];"
+		"S16I   %[r_sda_bitmask], %[r_set], 0;"
+		// SDA = 1 (SCL is already high, we don't need to change it)
+		"MEMW;"
+		"l_w12_a:"
+		"ADDI.N %[r_temp1], %[r_temp1], -1;"
+		"NOP;"
+		"BNEZ   %[r_temp1], l_w12_a;"
+
+		"l_exit_a:"
+		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+		"RSIL   %[r_temp1], 0;"
+
+		: [r_set] "+r" (a_set), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_byte_to_send] "+r" (byte_to_send), [r_iteration_ACK_polling_timeout] "+r" (iteration_ACK_polling_timeout)
+		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike)
+		: "memory"
+		);
+	return;
+}
+
 void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t SCL_frequency_KHz)
 {
 	// 7 Bit Slave Address; SCL Frequency in Steps of 100 KHz, range: 100 -- 1000 KHz
 
 	i2c_slave_address = slave_address;
 	if (i2c_SCL_frequency != SCL_frequency_KHz) {
-		uint16_t fr_sel = round(SCL_frequency_KHz / 100.0);
+		uint16_t fr_sel = (SCL_frequency_KHz + 50) / 100;
+		ACK_polling_loop_usec = 95 / fr_sel;
 		if (system_get_cpu_freq() == 160) {
 			if (fr_sel <= 1) iteration_scl_halfcycle = 156;
 			else if (fr_sel == 2) iteration_scl_halfcycle = 79;

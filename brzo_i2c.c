@@ -888,6 +888,10 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 		// Precondition: SDA = 0 (still pulled low by the slave) and SCL = 1
 		// 9th Clock Cycle is finished
 
+		// When we had an ACK after some ACK polling iteration (but without a timeout), 
+		//   r_error is = 2, since we obviously had an ACK now, we have to set r_error = 0
+		"MOVI.N %[r_error], 0;"
+
 		// The slave will pull SDA low as long as SCL = 1
 		// First, we have to set SDA = 0 by the master. This is to prevent a spike if the slave shall release
 		//   SDA a little bit too early

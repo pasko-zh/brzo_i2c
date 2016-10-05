@@ -15,7 +15,7 @@ HW and Tool Chain Support
 
  - Brzo i2c supports **only** esp8266 modules because it is implented in Xtensa assembly language.
  - The code is tested for the Arduino tool chain 
- - And thanks to **valkuc** works for the native tool chain, too! Make sure to use the correct [compiler flags](https://github.com/pasko-zh/brzo_i2c/issues/9#issuecomment-247020598).
+ - And thanks to **valkuc** it works for the native tool chain, too! Make sure to use the correct [compiler flags](https://github.com/pasko-zh/brzo_i2c/issues/9#issuecomment-247020598).
  - Tested Arduino versions:
 	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.2.0
 	 - Arduino IDE 1.6.5, ESP8266 Arduino Core 2.1.0
@@ -24,8 +24,9 @@ HW and Tool Chain Support
 
 Brzo i2c was tested with several i2c devices. If you find one which is not working, please open an issue.
 
-How to use the Brzo I2C Library
-===============================
+How to install the Brzo I2C Library
+-------
+
  - Use the Library Manager: 
 	 - If you are using the ArduinoIDE, you can install via library manager
 	 - If you are developing with [PlatformIO](http://platformio.org/) then simply use the library manager to install [brzo_i2c](http://platformio.org/lib/show/335/Brzo%20I2C)
@@ -33,6 +34,7 @@ How to use the Brzo I2C Library
  - Pull it from github
 
 And then just include brzo_i2c in your sketch as any other library with `#include "brzo_i2c.h"`. 
+
 
 I2C Setup
 ----------------
@@ -56,7 +58,8 @@ Example:
 I2C Transactions
 ----------------
 
-The motivation for i2c transactions is found on the [wiki](https://github.com/pasko-zh/brzo_i2c/wiki#i2c-transactions). An i2c transactions always begins with `brzo_i2c_start_transaction` and ends with `brzo_i2c_end_transaction`.  Inside a transaction you can combine any number i2c commands with or without a repeated start. A transaction is bound to one i2c slave and all commands are executed at the same SCL speed. Thus, brzo_i2c_start_transaction takes the slave address and SCL speed in KHz as input parameters.
+The motivation for i2c transactions is found on the [wiki](https://github.com/pasko-zh/brzo_i2c/wiki#i2c-transactions). An i2c transactions always begins with `brzo_i2c_start_transaction` and ends with `brzo_i2c_end_transaction`.  Within a transaction you can combine any number i2c commands with or without a repeated start, i.e. `brzo_i2c_write` or `brzo_i2c_read`. 
+A transaction is bound to one i2c slave and all commands are executed at the same SCL speed. Thus, brzo_i2c_start_transaction takes the slave address and SCL speed in KHz as input parameters.
 
 **Begin a transaction**
 
@@ -76,6 +79,34 @@ Example: Start a transaction to an i2c slave at 0x20 with 1 MHz SCL speed.
 `brzo_i2c_start_transaction(0x20, 1000);`
 
 
+**End a Transaction**
+
+`uint8_t brzo_i2c_end_transaction()`
+
+> **Note:** 
+> - The last i2c command before calling `brzo_i2c_end_transaction()` must not contain a repeated start, therefore use `brzo_i2c_read/write(.., .., false)` to send a STOP sequence instead of another repeated START.
+> - Refer to the [i2c specification](http://www.i2c-bus.org/repeated-start-condition) about repeated starts and how to "end" them
+
+Input
+
+ - None
+ 
+Returns
+
+- 0 : All i2c commands were executed without errors
+- errors
+	 - 1 : Bus not free
+	 - 2 : Not ACK ("NACK") by slave during write: Either the slave did not respond to the given slave address; or the slave did not ACK a byte transferred by the master.
+	 - 4 : Not ACK ("NACK") by slave during read, i.e. slave did not respond to the given slave address
+	 - 8 : Clock Stretching by slave exceeded maximum clock stretching time. Most probably, there is a bus stall now!
+	 - 16 : Read was called with 0 bytes to be read by the master. Command not sent to the slave, since this could yield to a bus stall
+	 - 32 : ACK Polling timeout exceeded 
+
+I2C Commands
+----------------
+
+The following i2c commands shall only be used within a transaction!
+
 **I2C write**
 
 `brzo_i2c_write(uint8_t *data, uint8_t no_of_bytes, boolean repeated_start)`
@@ -86,11 +117,13 @@ Example: Start a transaction to an i2c slave at 0x20 with 1 MHz SCL speed.
 
 
 Input
+
  - A pointer to an array of bytes: Either use the base address, e.g., `brzo_i2c_write(buffer, 2, ..)` or use the address of a specific array element, e.g. `brzo_i2c_write(&buffer[4], 2, ..);`. The former writes `buffer[0]` and `buffer[1]`, the latter  `buffer[4]` and `buffer[5]`
  - The number of bytes to be written
  - Repeated start if needed
  
 Returns
+
 - None
 
 Example
@@ -107,37 +140,43 @@ Example
 
 
 Input
+
  - A pointer to an array of bytes: Either use the base address, e.g., `brzo_i2c_read(buffer, 2, ..)` or use the address of a specific array element, e.g. `brzo_i2c_read(&buffer[4], 2, ..);`. The former receives two bytes and saves them to `buffer[0]` and `buffer[1]`, the latter to `buffer[4]` and `buffer[5]`
  - The number of bytes to be read
  - Repeated start if needed
  
 Returns
+
 - None
 
 Example
+
 - Into (the previously defined) `uint8_t buffer[4]` store 3 bytes (`buffer[0]`, `buffer[1]`, `buffer[2]`) and finish the read with a repeated start, i.e. do not send a STOP.
 `brzo_i2c_read(buffer, 3, true);`
 
-**End a Transaction**
+**I2C Acknowledge Polling**
 
-`uint8_t brzo_i2c_end_transaction()`
+Please see the [wiki](https://github.com/pasko-zh/brzo_i2c/wiki#i2c-acknowledge-polling) for further information about ACK Polling.
+
+`brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec)`
+
 
 > **Note:** 
-> - The last i2c command before calling `brzo_i2c_end_transaction()` must not contain a repeated start, therefore use `brzo_i2c_read/write(.., .., false)` to send a STOP sequence instead of another repeated START.
-> - Refer to the [i2c specification](http://www.i2c-bus.org/repeated-start-condition) about repeated starts and how to "end" them
+> - You can only call `brzo_i2c_ACK_polling` inside a transaction!
+> - There is error checking inside the ACK polling command. However, errors are only reported at the end of a transaction.
 
 
 Input
- - None
+
+ -  The timeout for ACK polling in micro seconds
  
 Returns
-- 0 : All i2c commands were executed without errors
-- errors
-	 - 1 : Bus not free
-	 - 2 : Not ACK ("NACK") by slave during write: Either the slave did not respond to the given slave address; or the slave did not ACK a byte transferred by the master.
-	 - 4 : Not ACK ("NACK") by slave during read, i.e. slave did not respond to the given slave address
-	 - 8 : Clock Stretching by slave exceeded maximum clock stretching time. Most probably, there is a bus stall now!
-	 - 16: Read was called with 0 bytes to be read by the master. Command not sent to the slave, since this could yield to a bus stall
+
+- None
+
+Example
+
+- Perform an ACK polling with 10 msec timeout `brzo_i2c_ACK_polling(10000)`
 
 
 Example of I2C Transactions
@@ -182,5 +221,7 @@ else {
   // Error Handling here...
 }
 ```
+
+
 
 

@@ -25,7 +25,8 @@ HW and Tool Chain Support
 Brzo i2c was tested with several i2c devices. If you find one which is not working, please open an issue.
 
 How to install the Brzo I2C Library
-===============================
+-------
+
  - Use the Library Manager: 
 	 - If you are using the ArduinoIDE, you can install via library manager
 	 - If you are developing with [PlatformIO](http://platformio.org/) then simply use the library manager to install [brzo_i2c](http://platformio.org/lib/show/335/Brzo%20I2C)
@@ -154,7 +155,8 @@ Example
 `brzo_i2c_read(buffer, 3, true);`
 
 **I2C Acknowledge Polling**
-Please see the wiki for further information about ACK Polling.
+
+Please see the [wiki](https://github.com/pasko-zh/brzo_i2c/wiki#i2c-acknowledge-polling) for further information about ACK Polling.
 
 `brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec)`
 
@@ -219,6 +221,7 @@ else {
   // Error Handling here...
 }
 ```
+
 
 
 

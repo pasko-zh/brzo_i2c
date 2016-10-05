@@ -59,6 +59,7 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 	// Bit 2 (4) : -- 
 	// Bit 3 (8) : Clock Stretching by slave exceeded maximum clock stretching time
 	// Bit 4 (16): --
+	// Bit 5 (32): --
 
 
 	// Do not perform an i2c write if a previous i2c command has already failed
@@ -361,6 +362,7 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	// Bit 3 (8) : Clock Stretching by slave exceeded maximum clock stretching time
 	// Bit 4 (16): Function called with 0 bytes to be read by the master. 
 	//             Command not sent to the slave, since this could yield to a bus stall (SDA remains 0)
+	// Bit 5 (32): --
 
 	// Set i2c_error and return if "empty" i2c read
 	if (nr_of_bytes == 0) {
@@ -732,10 +734,10 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 	// Returns 0 or Error encoded as follows
 	// Bit 0 (1) : Bus not free
 	// Bit 1 (2) : If the ACK polling time out was exceeded, we will have a NACK, too. 
-	// Bit 2 (4) : -- 
+	// Bit 2 (4) : --
 	// Bit 3 (8) : --
 	// Bit 4 (16): --
-	// Bit 5 (32): ACK Polling time out exceeded
+	// Bit 5 (32): ACK Polling timeout exceeded
 
 	// Assembler Variables
 	uint32_t a_set, a_in_value, a_temp1, a_bit_index;
@@ -878,8 +880,8 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 		//   Since we had a NACK, Postcondition: SDA = 1 and SCL = 1
 		"BNEZ   %[r_iteration_ACK_polling_timeout], l_ACK_loop;"
 		// else we have a timeout and a NACK
-		// Timeout error and NACK error (Bit 1, Bit 5; 34d)
-		"MOVI.N %[r_error], 34;"
+		// ACK polling timeout error 
+		"MOVI.N %[r_error], 32;"
 		// Since we had a NACK, Postcondition: SDA = 1 and SCL = 1
 		// We will send a STOP after the timeout and the NACK, just to be on the safe side
 		"j l_stop_after_NACK_a;" 

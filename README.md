@@ -40,7 +40,7 @@ And then just include brzo_i2c in your sketch as any other library with `#includ
 Disabling or enabling Interrupts during i2c reads or writes
 -------
 
-In [brzo_i2c.h](https://github.com/pasko-zh/brzo_i2c/blob/master/brzo_i2c.h#L29) you can set the behaviour how interrupts during i2c reads or writes are treated. 
+In [brzo_i2c.h](https://github.com/pasko-zh/brzo_i2c/blob/master/brzo_i2c.h#L29) you can set the behaviour how interrupts during i2c reads or writes are handled: Setting `BRZO_I2C_DISABLE_INTERRUPTS` to `1` will *disable* all interrupts during i2c read or writes. The default is *all interrupts are disabled*.   
 
 
 I2C Setup

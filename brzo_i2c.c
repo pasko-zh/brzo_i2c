@@ -73,7 +73,9 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
 		//   the current level is saved in %[r_temp1] but we will not use that value again, 
 		//   instead we will just enable all interrupt levels at the end of this routine
+#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
+#endif
 		"MOVI   %[r_set], 0x60000304;"
 
 		// Check if bus is free and send START
@@ -343,7 +345,9 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 
 		"l_exit:"
 		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
+#endif
 
 		: [r_set] "+r" (a_set), [r_repeated] "+r" (a_repeated), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_adr_array_element] "+r" (&data[0]), [r_byte_to_send] "+r" (byte_to_send), [r_no_of_bytes] "+r" (no_of_bytes)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike), [r_iteration_scl_clock_stretch] "r" (iteration_scl_clock_stretch)
@@ -381,7 +385,9 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 
 	asm volatile (
 		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
+#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
+#endif
 		"MOVI   %[r_set], 0x60000304;"
 
 		// Check if bus is free and send START
@@ -720,7 +726,9 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 
 		"l_exit_r:"
 		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
+#endif
 
 		: [r_set] "+r" (a_set), [r_repeated] "+r" (a_repeated), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_adr_array_element] "+r" (&data[0]), [r_temp2] "+r" (a_temp2), [r_nr_of_bytes] "+r" (nr_of_bytes)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike), [r_iteration_scl_clock_stretch] "r" (iteration_scl_clock_stretch)
@@ -755,7 +763,9 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
 		//   the current level is saved in %[r_temp1] but we will not use that value again, 
 		//   instead we will just enable all interrupt levels at the end of this routine
+#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
+#endif
 		"MOVI   %[r_set], 0x60000304;"
 
 		// Check if bus is free and send START
@@ -951,7 +961,9 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 
 		"l_exit_a:"
 		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
+#endif
 
 		: [r_set] "+r" (a_set), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_byte_to_send] "+r" (byte_to_send), [r_iteration_ACK_polling_timeout] "+r" (iteration_ACK_polling_timeout)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike)

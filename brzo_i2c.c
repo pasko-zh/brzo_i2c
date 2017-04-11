@@ -53,7 +53,7 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 {
 	// Pointer to Data Buffer, Number of Bytes to Send from Data Buffer
 	// Returns 0 or Error encoded as follows
-	// Bit 0 (1) : Bus not free
+	// Bit 0 (1) : Bus not free, i.e. either SDA or SCL is low
 	// Bit 1 (2) : Not ACK ("NACK") by slave during write: Either the slave did not respond to the given slave address; 
 	//            or it did not ACK a byte transferred by the master.
 	// Bit 2 (4) : -- 
@@ -70,7 +70,8 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
 	asm volatile (
-		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
+		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1, then all interrupts are disabled, 
+		//   i.e. interrupts up to the highest interrupt level of 15
 		//   the current level is saved in %[r_temp1] but we will not use that value again, 
 		//   instead we will just enable all interrupt levels at the end of this routine
 #if BRZO_I2C_DISABLE_INTERRUPTS != 0
@@ -344,7 +345,8 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 		"BNEZ   %[r_temp1], l_w12;"
 
 		"l_exit:"
-		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1,  
+		//   enable all interrupts again, i.e. interrupts with interrupt level >= 1
 #if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
 #endif
@@ -360,7 +362,7 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 {
 	// Pointer to Data Buffer, Number of Bytes to Read from Data Buffer
 	// Set i2c_error as follows
-	// Bit 0 (1) : Bus not free
+	// Bit 0 (1) : Bus not free, i.e. either SDA or SCL is low
 	// Bit 1 (2) : --
 	// Bit 2 (4) : Not ACK ("NACK") by slave during read, i.e. slave did not respond to the given slave address
 	// Bit 3 (8) : Clock Stretching by slave exceeded maximum clock stretching time
@@ -384,7 +386,8 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	a_temp2 = (i2c_slave_address << 1) | 1;
 
 	asm volatile (
-		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
+		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1, then all interrupts are disabled, 
+		//   i.e. interrupts up to the highest interrupt level of 15
 #if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
 #endif
@@ -725,7 +728,8 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 		"BNEZ   %[r_temp1], l_r19;"
 
 		"l_exit_r:"
-		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1,  
+		//   enable all interrupts again, i.e. interrupts with interrupt level >= 1
 #if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
 #endif
@@ -740,7 +744,7 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 	// Timeout for ACK polling in usec
 	// Returns 0 or Error encoded as follows
-	// Bit 0 (1) : Bus not free
+	// Bit 0 (1) : Bus not free, i.e. either SDA or SCL is low
 	// Bit 1 (2) : If the ACK polling time out was exceeded, we will have a NACK, too. 
 	// Bit 2 (4) : --
 	// Bit 3 (8) : --
@@ -760,7 +764,8 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 	}
 
 	asm volatile (
-		// Disable all interrupts, i.e. interrupts up to the highest interrupt level of 15
+		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1, then all interrupts are disabled, 
+		//   i.e. interrupts up to the highest interrupt level of 15
 		//   the current level is saved in %[r_temp1] but we will not use that value again, 
 		//   instead we will just enable all interrupt levels at the end of this routine
 #if BRZO_I2C_DISABLE_INTERRUPTS != 0
@@ -960,7 +965,8 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 		"BNEZ   %[r_temp1], l_w12_a;"
 
 		"l_exit_a:"
-		// Enable all interrupts again, i.e. interrupts with interrupt level >= 1
+		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1,  
+		//   enable all interrupts again, i.e. interrupts with interrupt level >= 1
 #if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
 #endif
@@ -1009,7 +1015,7 @@ void ICACHE_RAM_ATTR brzo_i2c_start_transaction(uint8_t slave_address, uint16_t 
 uint8_t ICACHE_RAM_ATTR brzo_i2c_end_transaction()
 {
 	// returns 0 if transaction completed successfully or error code encoded as follows
-	// Bit 0 (1) : Bus not free
+	// Bit 0 (1) : Bus not free, i.e. either SDA or SCL is low
 	// Bit 1 (2) : Not ACK ("NACK") by slave during write: Either the slave did not respond to the given slave address; 
 	//             or it did not ACK a byte transferred by the master.
 	// Bit 2 (4) : Not ACK ("NACK") by slave during read, i.e. slave did not respond to the given slave address

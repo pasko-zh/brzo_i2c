@@ -17,6 +17,7 @@ HW and Tool Chain Support
  - The code is tested for the Arduino tool chain 
  - And thanks to **valkuc** it works for the native tool chain, too! Make sure to use the correct [compiler flags](https://github.com/pasko-zh/brzo_i2c/issues/9#issuecomment-247020598).
  - Tested Arduino versions:
+	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.3.0
 	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.2.0
 	 - Arduino IDE 1.6.5, ESP8266 Arduino Core 2.1.0
  - Tested Native SDK versions:
@@ -34,6 +35,12 @@ How to install the Brzo I2C Library
  - Pull it from github
 
 And then just include brzo_i2c in your sketch as any other library with `#include "brzo_i2c.h"`. 
+
+
+Disabling or enabling Interrupts during i2c reads or writes
+-------
+
+In [brzo_i2c.h](https://github.com/pasko-zh/brzo_i2c/blob/master/brzo_i2c.h#L29) you can set the behaviour how interrupts during i2c reads or writes are treated. 
 
 
 I2C Setup
@@ -95,7 +102,7 @@ Returns
 
 - 0 : All i2c commands were executed without errors
 - errors
-	 - 1 : Bus not free
+	 - 1 : Bus not free, i.e. either SDA or SCL is low
 	 - 2 : Not ACK ("NACK") by slave during write: Either the slave did not respond to the given slave address; or the slave did not ACK a byte transferred by the master.
 	 - 4 : Not ACK ("NACK") by slave during read, i.e. slave did not respond to the given slave address
 	 - 8 : Clock Stretching by slave exceeded maximum clock stretching time. Most probably, there is a bus stall now!

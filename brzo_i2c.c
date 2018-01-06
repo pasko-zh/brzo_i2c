@@ -741,7 +741,8 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	return;
 }
 
-void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
+void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec)
+{
 	// Timeout for ACK polling in usec
 	// Returns 0 or Error encoded as follows
 	// Bit 0 (1) : Bus not free, i.e. either SDA or SCL is low
@@ -1075,6 +1076,14 @@ void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
 	scl_bitmask = (uint16_t)(1 << BRZO_I2C_SCL_GPIO);
 #endif
 
+	brzo_i2c_reset_bus();
+}
+
+void ICACHE_FLASH_ATTR brzo_i2c_reset_bus()
+{
+	// Assembler Variables
+	uint32_t a_set, a_temp1;
+
 	// After setting the pins to open drain, their initial value is LOW
 	//   therefore, we have to set SDA and SCL to high and wait a little bit
 	asm volatile (
@@ -1092,9 +1101,4 @@ void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask)
 		: "memory"
 	);
-}
-
-void ICACHE_FLASH_ATTR brzo_i2c_reset_bus()
-{
-	// Not yet implemented
 }

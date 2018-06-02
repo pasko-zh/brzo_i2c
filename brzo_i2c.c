@@ -165,6 +165,12 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 		// Branch if we have not yet reached the timeout
 		"BNEZ   %[r_temp1], l_stretch;"
 		// We have reached the clock stretch timeout, i.e. SCL is still pulled low by the slave
+		// Before the clock stretching, the master has set SCL to high but left SDA unchanged. 
+		// Thus, if the LSB was zero, SDA is still pulled low by the master. 
+		// We therefore have to release SDA
+		// (if SDA was already high, setting it to high again won't do any harm)
+		"S16I   %[r_sda_bitmask], %[r_set], 0;"
+		"MEMW;"
 		// Error: Bus is not free, since SCL is still low AND clock stretch timeout reached
 		"MOVI.N %[r_error], 8;"
 		// We explicitly do not send a STOP instead we exit, i.e. jump to l_exit and not to l_send_stop
@@ -559,6 +565,8 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 		// Branch if we have not yet reached the timeout
 		"BNEZ   %[r_temp1], l_stretch_rB;"
 		// We have reached the clock stretch timeout, i.e. SCL is still pulled low by the slave
+		// Different than with the brzo_i2c_write, we don't have to set SDA to high here, since both SDA and SCL 
+		//	 are controlled by the slave. 
 		// Error: Bus is not free, since SCL is still low AND clock stretch timeout reached
 		"MOVI.N %[r_error], 8;"
 		// We explicitly do not send a STOP instead we exit, i.e. jump to l_exit and not to l_send_stop

@@ -17,9 +17,10 @@ HW and Tool Chain Support
  - The code is tested for the Arduino tool chain 
  - And thanks to **valkuc** it works for the native tool chain, too! Make sure to use the correct [compiler flags](https://github.com/pasko-zh/brzo_i2c/issues/9#issuecomment-247020598).
  - Tested Arduino versions:
-	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.3.0
-	 - Arduino IDE 1.6.8, ESP8266 Arduino Core 2.2.0
-	 - Arduino IDE 1.6.5, ESP8266 Arduino Core 2.1.0
+	 - ESP8266 Arduino Core 2.4.1
+	 - ESP8266 Arduino Core 2.3.0
+	 - ESP8266 Arduino Core 2.2.0
+	 - ESP8266 Arduino Core 2.1.0
  - Tested Native SDK versions:
  	 - SDK Version 2.0.0	
 

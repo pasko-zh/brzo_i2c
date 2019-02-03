@@ -26,6 +26,8 @@ HW and Tool Chain Support
 
 Brzo i2c was tested with several i2c devices. If you find one which is not working, please open an issue.
 
+**NOTE for AM2320 Sensor: The wake-up sequence is not compatible with `brzo_i2c`, see analysis [here](https://github.com/pasko-zh/brzo_i2c/issues/33#issuecomment-460065731)**
+
 How to install the Brzo I2C Library
 -------
 

@@ -49,7 +49,7 @@ uint16_t i2c_SCL_frequency = 0;
 uint8_t i2c_error = 0;
 
 
-void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool repeated_start)
+void ICACHE_RAM_ATTR brzo_i2c_write(const uint8_t *data, uint32_t no_of_bytes, bool repeated_start)
 {
 	// Pointer to Data Buffer, Number of Bytes to Send from Data Buffer
 	// Returns 0 or Error encoded as follows
@@ -66,7 +66,7 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 	if (i2c_error > 0) return;
 	uint8_t byte_to_send = i2c_slave_address << 1;
 	// Assembler Variables
-	uint32_t a_set, a_repeated, a_in_value, a_temp1, a_bit_index;
+	uint32_t a_set = 0, a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_bit_index = 0;
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
 	asm volatile (
@@ -384,7 +384,7 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	// Do not perform an i2c read if a previous i2c command has already failed
 	if (i2c_error > 0) return;
 	// Assembler Variables
-	uint32_t a_set, a_repeated, a_in_value, a_temp1, a_temp2, a_bit_index;
+	uint32_t a_set = 0, a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_temp2 = 0, a_bit_index = 0;
 	a_temp2 = 0;
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
@@ -760,7 +760,7 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 	// Bit 5 (32): ACK Polling timeout exceeded
 
 	// Assembler Variables
-	uint32_t a_set, a_in_value, a_temp1, a_bit_index;
+	uint32_t a_set = 0, a_in_value = 0, a_temp1 = 0, a_bit_index = 0;
 	uint16_t iteration_ACK_polling_timeout;
 	uint8_t byte_to_send = i2c_slave_address << 1;
 
@@ -1047,7 +1047,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
 	// maximum time (usec) a slave is allowed to stretch the clock, min. 100 usec
 
 	// Assembler Variables
-	uint32_t a_set, a_temp1;
+	uint32_t a_set = 0, a_temp1 = 0;
 
 	if (system_get_cpu_freq() == 160) {
 		iteration_remove_spike = 15;
@@ -1105,4 +1105,9 @@ void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
 void ICACHE_FLASH_ATTR brzo_i2c_reset_bus()
 {
 	// Not yet implemented
+}
+
+uint8_t ICACHE_FLASH_ATTR brzo_i2c_get_error()
+{
+	return i2c_error;
 }

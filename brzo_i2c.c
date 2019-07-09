@@ -66,7 +66,7 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 	if (i2c_error > 0) return;
 	uint8_t byte_to_send = i2c_slave_address << 1;
 	// Assembler Variables
-	uint32_t a_set, a_repeated, a_in_value, a_temp1, a_bit_index;
+	uint32_t a_set = 0, a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_bit_index = 0;
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
 	asm volatile (
@@ -74,9 +74,9 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 		//   i.e. interrupts up to the highest interrupt level of 15
 		//   the current level is saved in %[r_temp1] but we will not use that value again, 
 		//   instead we will just enable all interrupt levels at the end of this routine
-#if BRZO_I2C_DISABLE_INTERRUPTS != 0
+		#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
-#endif
+		#endif
 		"MOVI   %[r_set], 0x60000304;"
 
 		// Check if bus is free and send START
@@ -353,9 +353,9 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 		"l_exit:"
 		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1,  
 		//   enable all interrupts again, i.e. interrupts with interrupt level >= 1
-#if BRZO_I2C_DISABLE_INTERRUPTS != 0
+		#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
-#endif
+		#endif
 
 		: [r_set] "+r" (a_set), [r_repeated] "+r" (a_repeated), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_adr_array_element] "+r" (&data[0]), [r_byte_to_send] "+r" (byte_to_send), [r_no_of_bytes] "+r" (no_of_bytes)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike), [r_iteration_scl_clock_stretch] "r" (iteration_scl_clock_stretch)
@@ -384,7 +384,7 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	// Do not perform an i2c read if a previous i2c command has already failed
 	if (i2c_error > 0) return;
 	// Assembler Variables
-	uint32_t a_set, a_repeated, a_in_value, a_temp1, a_temp2, a_bit_index;
+	uint32_t a_set = 0, a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_temp2 = 0, a_bit_index = 0;
 	a_temp2 = 0;
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
@@ -394,9 +394,9 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	asm volatile (
 		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1, then all interrupts are disabled, 
 		//   i.e. interrupts up to the highest interrupt level of 15
-#if BRZO_I2C_DISABLE_INTERRUPTS != 0
+		#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
-#endif
+		#endif
 		"MOVI   %[r_set], 0x60000304;"
 
 		// Check if bus is free and send START
@@ -738,9 +738,9 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 		"l_exit_r:"
 		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1,  
 		//   enable all interrupts again, i.e. interrupts with interrupt level >= 1
-#if BRZO_I2C_DISABLE_INTERRUPTS != 0
+		#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
-#endif
+		#endif
 
 		: [r_set] "+r" (a_set), [r_repeated] "+r" (a_repeated), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_adr_array_element] "+r" (&data[0]), [r_temp2] "+r" (a_temp2), [r_nr_of_bytes] "+r" (nr_of_bytes)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike), [r_iteration_scl_clock_stretch] "r" (iteration_scl_clock_stretch)
@@ -760,7 +760,7 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 	// Bit 5 (32): ACK Polling timeout exceeded
 
 	// Assembler Variables
-	uint32_t a_set, a_in_value, a_temp1, a_bit_index;
+	uint32_t a_set = 0, a_in_value = 0, a_temp1 = 0, a_bit_index = 0;
 	uint16_t iteration_ACK_polling_timeout;
 	uint8_t byte_to_send = i2c_slave_address << 1;
 
@@ -776,9 +776,9 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 		//   i.e. interrupts up to the highest interrupt level of 15
 		//   the current level is saved in %[r_temp1] but we will not use that value again, 
 		//   instead we will just enable all interrupt levels at the end of this routine
-#if BRZO_I2C_DISABLE_INTERRUPTS != 0
+		#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 15;"
-#endif
+		#endif
 		"MOVI   %[r_set], 0x60000304;"
 
 		// Check if bus is free and send START
@@ -975,9 +975,9 @@ void ICACHE_RAM_ATTR brzo_i2c_ACK_polling(uint16_t ACK_polling_time_out_usec) {
 		"l_exit_a:"
 		// If BRZO_I2C_DISABLE_INTERRUPTS is set to 1,  
 		//   enable all interrupts again, i.e. interrupts with interrupt level >= 1
-#if BRZO_I2C_DISABLE_INTERRUPTS != 0
+		#if BRZO_I2C_DISABLE_INTERRUPTS != 0
 		"RSIL   %[r_temp1], 0;"
-#endif
+		#endif
 
 		: [r_set] "+r" (a_set), [r_temp1] "+r" (a_temp1), [r_in_value] "+r" (a_in_value), [r_error] "+r" (i2c_error), [r_bit_index] "+r" (a_bit_index), [r_byte_to_send] "+r" (byte_to_send), [r_iteration_ACK_polling_timeout] "+r" (iteration_ACK_polling_timeout)
 		: [r_sda_bitmask] "r" (sda_bitmask), [r_scl_bitmask] "r" (scl_bitmask), [r_iteration_scl_halfcycle] "r" (iteration_scl_halfcycle), [r_iteration_minimize_spike] "r" (iteration_remove_spike)
@@ -1047,7 +1047,7 @@ void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
 	// maximum time (usec) a slave is allowed to stretch the clock, min. 100 usec
 
 	// Assembler Variables
-	uint32_t a_set, a_temp1;
+	uint32_t a_set = 0, a_temp1 = 0;
 
 	if (system_get_cpu_freq() == 160) {
 		iteration_remove_spike = 15;
@@ -1061,12 +1061,12 @@ void ICACHE_FLASH_ATTR brzo_i2c_setup(uint32_t clock_stretch_time_out_usec)
 		else iteration_scl_clock_stretch = 470 * clock_stretch_time_out_usec / 100;
 	}
 
-#ifdef ARDUINO
+	#ifdef ARDUINO
 	pinMode(sda, OUTPUT_OPEN_DRAIN);
 	pinMode(scl, OUTPUT_OPEN_DRAIN);
 	sda_bitmask = (uint16_t)(1 << sda);
 	scl_bitmask = (uint16_t)(1 << scl);
-#else
+	#else
 	ETS_GPIO_INTR_DISABLE();
 
 	PIN_FUNC_SELECT(BRZO_I2C_SDA_MUX, BRZO_I2C_SDA_FUNC);

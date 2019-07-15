@@ -1,17 +1,17 @@
 /*
-HTU21_brzo.ino -- An example sketch showing how to use an HTU21 with brzo i2c
+HTU21D.ino -- An example sketch showing how to use an HTU21 with brzo i2c
 
 Copyright (c) 2016 Pascal Kurtansky (pascal at kurtansky dot ch).
 All rights reserved.
 
 This file is part of the library brzo_i2c.
 
-HTU21_brzo is free software: you can redistribute it and/or modify
+HTU21D is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-HTU21_brzo is distributed in the hope that it will be useful,
+HTU21D is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.

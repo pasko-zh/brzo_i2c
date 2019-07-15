@@ -1,6 +1,6 @@
 {
   "name": "Brzo I2C",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "keywords": "esp8266, I2C",
   "description": "Brzo I2C is a fast I2C Implementation written in Assembly for the esp8266",
   "repository":

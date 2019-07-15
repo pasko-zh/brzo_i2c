@@ -22,8 +22,8 @@ HW and Tool Chain Support
 	 - ESP8266 Arduino Core 2.2.0
 	 - ESP8266 Arduino Core 2.1.0
  - Tested Native SDK versions:
- 	 - SDK Version 2.0.0	
-	 - SDK Version 3.0.1
+ 	 - SDK Version 3.0.1
+	 - SDK Version 2.0.0	
 
 Brzo i2c was tested with several i2c devices. If you find one which is not working, please open an issue.
 

@@ -19,6 +19,7 @@ HW and Tool Chain Support
  - Tested Arduino versions:
 	 - ESP8266 Arduino Core 2.1.0 up to 2.7.4
 	 - **There is currently an issue with ESP8266 Arduino Core 3, i.e. it won't compile [#44](https://github.com/pasko-zh/brzo_i2c/issues/44)**
+		- **Probably fixed with latest commit, compilation doesn't fail and and testing with an SH1106 oled display seems fine... Testing required!**
  - Tested Native SDK versions:
  	 - SDK Version 3.0.1
 	 - SDK Version 2.0.0	

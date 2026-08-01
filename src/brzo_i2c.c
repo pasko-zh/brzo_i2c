@@ -66,7 +66,8 @@ void ICACHE_RAM_ATTR brzo_i2c_write(uint8_t *data, uint32_t no_of_bytes, bool re
 	if (i2c_error > 0) return;
 	uint8_t byte_to_send = i2c_slave_address << 1;
 	// Assembler Variables
-	uint32_t a_set = 0, a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_bit_index = 0;
+	uint32_t a_set = 0;
+	uint16_t a_repeated = 0, a_in_value = 0, a_bit_index = 0, a_temp1 = 0;
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
 	asm volatile (
@@ -384,8 +385,8 @@ void ICACHE_RAM_ATTR brzo_i2c_read(uint8_t *data, uint32_t nr_of_bytes, bool rep
 	// Do not perform an i2c read if a previous i2c command has already failed
 	if (i2c_error > 0) return;
 	// Assembler Variables
-	uint32_t a_set = 0, a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_temp2 = 0, a_bit_index = 0;
-	a_temp2 = 0;
+	uint32_t a_set = 0;
+	uint16_t a_repeated = 0, a_in_value = 0, a_temp1 = 0, a_temp2 = 0, a_bit_index = 0;
 	if (repeated_start == true) a_repeated = 1;
 	else a_repeated = 0;
 	// a_temp2 holds 7 Bit slave address, with the LSB = 1 for i2c read
